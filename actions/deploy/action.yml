@@ -1,0 +1,56 @@
+name: 'IIS Blue-Green Deploy'
+description: 'Deploy website to IIS using blue-green deployment strategy. Requires an action runner on the target web server'
+inputs:
+  artifact-path: 
+    description: 'Path to the unzipped website artifact that will be copied to the webroot'
+    required: true
+  farm-name:
+    description: 'Name of the WebFarm that balances traffic between slots'
+    required: true
+  host-name: 
+    description: 'The dns host the site intended to service. I.e. subdomain.domain.com (no http or other protocal, and no path)'
+  blue-IISWebsiteName: 
+    description: 'Name of the WebFarm that balances traffic between slots'
+    required: true
+  blue-WebRootDirectory: 
+    description: 'The root directory IIS will server the deploy slot from'
+    required: true
+  blue-FarmServerName: 
+    description: 'local-only address that IIS will use to redirect traffic to the deploy slot (i.e. appname-blue)'
+    required: true
+  blue-Port: 
+    description: 'Port the slot will run on locally, allowing traffic redirect (i.e. 8080)'
+    required: true
+  green-IISWebsiteName: 
+    description: 'Name of the WebFarm that balances traffic between slots'
+    required: true
+  green-WebRootDirectory: 
+    description: 'The root directory IIS will server the deploy slot from'
+    required: true
+  green-FarmServerName: 
+    description: 'local-only address that IIS will use to redirect traffic to the deploy slot (i.e. appname-blue)'
+    required: true
+  green-Port: 
+    description: 'Port the slot will run on locally, allowing traffic redirect (i.e. 8080)'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Ensure Blue-green infrastructure
+      shell: pwsh
+      run: > 
+        Import-Module ./.github/actions/blue-green.ps1 && 
+        Ensure-BlueGreen-Environment 
+        -FarmName ${{ inputs.farm-name }}
+        -HostName ${{ inputs.host-name }}
+        -BlueSlot (New-DeploySlot -IISWebsiteName ${{ inputs.blue-IISWebsiteName }} -WebRootDirectory ${{ inputs.blue-WebRootDirectory }} -Port ${{ inputs.blue-Port }} -FarmServerName ${{ inputs.blue-FarmServerName }}) 
+        -GreenSlot (New-DeploySlot -IISWebsiteName ${{ inputs.green-IISWebsiteName }} -WebRootDirectory ${{ inputs.green-WebRootDirectory }} -Port ${{ inputs.green-Port }} -FarmServerName ${{ inputs.green-FarmServerName }})
+    - name: Deploy Site with Blue-Green strategy
+      shell: pwsh
+      run: > 
+        Import-Module ./.github/actions/blue-green.ps1 &&
+        Deploy-BlueGreen
+        -FarmName ${{ inputs.farm-name }}
+        -ArtifactPath ${{ inputs.artifact-path }}
+        -BlueSlot (New-DeploySlot -IISWebsiteName ${{ inputs.blue-IISWebsiteName }} -WebRootDirectory ${{ inputs.blue-WebRootDirectory }} -Port ${{ inputs.blue-Port }} -FarmServerName ${{ inputs.blue-FarmServerName }}) 
+        -GreenSlot (New-DeploySlot -IISWebsiteName ${{ inputs.green-IISWebsiteName }} -WebRootDirectory ${{ inputs.green-WebRootDirectory }} -Port ${{ inputs.green-Port }} -FarmServerName ${{ inputs.green-FarmServerName }})
