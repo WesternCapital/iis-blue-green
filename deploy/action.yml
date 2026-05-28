@@ -39,7 +39,7 @@ runs:
     - name: Ensure Blue-green infrastructure
       shell: pwsh
       run: > 
-        Import-Module ./.github/actions/blue-green.ps1 && 
+        Import-Module ./blue-green.ps1 && 
         Ensure-BlueGreen-Environment 
         -FarmName ${{ inputs.farm-name }}
         -HostName ${{ inputs.host-name }}
@@ -48,7 +48,7 @@ runs:
     - name: Deploy Site with Blue-Green strategy
       shell: pwsh
       run: > 
-        Import-Module ./.github/actions/blue-green.ps1 &&
+        Import-Module ./blue-green.ps1 &&
         Deploy-BlueGreen
         -FarmName ${{ inputs.farm-name }}
         -ArtifactPath ${{ inputs.artifact-path }}
