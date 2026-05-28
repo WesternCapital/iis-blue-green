@@ -36,8 +36,6 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - run: Write-Host "Action path is ${{ github.action_path }}"
-      shell: pwsh
     - name: Ensure Blue-green infrastructure
       shell: pwsh
       run: > 
