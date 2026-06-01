@@ -33,6 +33,10 @@ inputs:
   green-Port: 
     description: 'Port the slot will run on locally, allowing traffic redirect (i.e. 8080)'
     required: true
+  support-ssl:
+    description: 'Right now just ensures the redirect rules handle SSL. The site binding is currently a separate step because certificate management is fairly complex and easier to manage with win-acme'
+    required: false
+    default: false
 runs:
   using: "composite"
   steps:
@@ -45,6 +49,7 @@ runs:
         -HostName ${{ inputs.host-name }}
         -BlueSlot (New-DeploySlot -IISWebsiteName ${{ inputs.blue-IISWebsiteName }} -WebRootDirectory ${{ inputs.blue-WebRootDirectory }} -Port ${{ inputs.blue-Port }} -FarmServerName ${{ inputs.blue-FarmServerName }}) 
         -GreenSlot (New-DeploySlot -IISWebsiteName ${{ inputs.green-IISWebsiteName }} -WebRootDirectory ${{ inputs.green-WebRootDirectory }} -Port ${{ inputs.green-Port }} -FarmServerName ${{ inputs.green-FarmServerName }})
+        -SupportSSL ${{ inputs.support-ssl }}
     - name: Deploy Site with Blue-Green strategy
       shell: pwsh
       run: > 

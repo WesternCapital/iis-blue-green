@@ -333,7 +333,8 @@ function Ensure-RedirectToWebfarm {
         [Parameter(Mandatory=$true)]
         [string]$FarmName,
         [Parameter(Mandatory=$true)]
-        [string]$InboundHostName
+        [string]$InboundHostName,
+        [bool]$RedirectSSL = $false
     )
     $ruleName = "WebFarmRedirect_$FarmName"
     if (-Not(Get-WebConfiguration -Filter "system.webServer/rewrite/globalRules/rule[@name='$ruleName']" -ErrorAction SilentlyContinue)) {
@@ -346,7 +347,8 @@ function Ensure-RedirectToWebfarm {
         }
         Add-WebConfiguration -Filter "system.webServer/rewrite/globalRules/rule[@name='$ruleName']/conditions" -Value @{input='{HTTP_HOST}'; pattern="^$InboundHostName$"}
 
-        Add-WebConfiguration -Filter "system.webServer/rewrite/globalRules/rule[@name='$ruleName']/conditions" -Value @{input='{SERVER_PORT}'; pattern='^80$'}
+        $portPattern = $RedirectSSL ? '^(80|443)$' : '^80$'
+        Add-WebConfiguration -Filter "system.webServer/rewrite/globalRules/rule[@name='$ruleName']/conditions" -Value @{input='{SERVER_PORT}'; pattern=$portPattern}
 
         Write-Host "Created redirect rule for Web Farm: $FarmName with inbound host name condition: $InboundHostName"
     }
@@ -384,7 +386,8 @@ function Ensure-BlueGreen-Environment {
         [Parameter(Mandatory=$false)]
         [TimeSpan]$ProxyTimeoutSeconds,
         [Parameter(Mandatory=$false)]
-        [int]$MaxRequestBodySizeBytes
+        [int]$MaxRequestBodySizeBytes,
+        [bool]$SupportSSL = $false 
     )
 
     Write-Host @"
@@ -402,7 +405,7 @@ function Ensure-BlueGreen-Environment {
     Ensure-DeploySlot -Slot $BlueSlot -WebFarmName $FarmName
     Ensure-DeploySlot -Slot $GreenSlot -WebFarmName $FarmName
 
-    Ensure-RedirectToWebfarm -FarmName $FarmName -InboundHostName $HostName
+    Ensure-RedirectToWebfarm -FarmName $FarmName -InboundHostName $HostName -RedirectSSL $SupportSSL
 
     if($ProxyTimeoutSeconds) {
         Write-Host "Setting proxy timeout to: $ProxyTimeoutSeconds seconds"
