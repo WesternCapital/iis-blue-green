@@ -49,7 +49,7 @@ runs:
         -HostName ${{ inputs.host-name }}
         -BlueSlot (New-DeploySlot -IISWebsiteName ${{ inputs.blue-IISWebsiteName }} -WebRootDirectory ${{ inputs.blue-WebRootDirectory }} -Port ${{ inputs.blue-Port }} -FarmServerName ${{ inputs.blue-FarmServerName }}) 
         -GreenSlot (New-DeploySlot -IISWebsiteName ${{ inputs.green-IISWebsiteName }} -WebRootDirectory ${{ inputs.green-WebRootDirectory }} -Port ${{ inputs.green-Port }} -FarmServerName ${{ inputs.green-FarmServerName }})
-        -SupportSSL ${{ inputs.support-ssl }}
+        -SupportSSL $${{ inputs.support-ssl }}
     - name: Deploy Site with Blue-Green strategy
       shell: pwsh
       run: > 
