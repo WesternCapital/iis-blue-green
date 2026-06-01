@@ -10,7 +10,7 @@ One reason we might want to split out more actions is so that we can run more ex
 
 ```yml
 - name: Deploy to IIS
-  uses: WesternCapital/iis-blue-green/deploy@v1
+  uses: WesternCapital/iis-blue-green/deploy@v1.1
   with: 
     artifact-path: ./path/to/files-to-publish
     farm-name: webfarm-name
@@ -23,4 +23,5 @@ One reason we might want to split out more actions is so that we can run more ex
     green-WebRootDirectory: "some/path/green"
     green-FarmServerName: "sitename-green"
     green-Port: 3003
+    support-ssl: true
 ```
