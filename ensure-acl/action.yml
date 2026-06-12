@@ -21,7 +21,7 @@ runs:
       run: > 
         Import-Module ${{ github.action_path }}/../blue-green.ps1 && 
         Ensure-Acl 
-        -Path ${{ inputs.path }}
+        -Path "${{ inputs.path }}"
         -Access ([System.Security.AccessControl.FileSystemRights]::${{ inputs.permission }})
-        -UserId ${{ inputs.username }}
+        -UserId "${{ inputs.username }}"
         ${{ ((inputs.inherit == 'true') && '-Inherit') || '' }}
