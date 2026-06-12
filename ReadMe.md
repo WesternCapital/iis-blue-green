@@ -10,7 +10,7 @@ One reason we might want to split out more actions is so that we can run more ex
 
 ```yml
 - name: Deploy to IIS
-  uses: WesternCapital/iis-blue-green/deploy@v1.2-alpha
+  uses: WesternCapital/iis-blue-green/deploy@v1.2-alpha2
   with: 
     artifact-path: ./path/to/files-to-publish
     farm-name: webfarm-name
@@ -33,7 +33,7 @@ One reason we might want to split out more actions is so that we can run more ex
 
 ```yml
 - name: Ensure file system rights
-  uses: WesternCapital/iis-blue-green/ensure-acl@v1.2-alpha
+  uses: WesternCapital/iis-blue-green/ensure-acl@v1.2-alpha2
   with: 
     path: ./path/to/files-or-dir
     permission: ReadAndExecute
