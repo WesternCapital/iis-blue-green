@@ -1,0 +1,27 @@
+name: 'IIS Blue-Green Deploy'
+description: 'Deploy website to IIS using blue-green deployment strategy. Requires an action runner on the target web server'
+inputs:
+  path: 
+    description: 'Path to the file or directory you want to set permissions for'
+    required: true
+  permission:
+    description: 'the permission you want to grant. Should be a member of System.Security.AccessControl.FileSystemRights'
+    required: true
+  username: 
+    description: 'fully qualified name of the user you are granting permission to. i.e. IIS AppPool\'
+    required: true
+  inherit: 
+    description: 'should child file items inherit the permission'
+    required: false
+runs:
+  using: "composite"
+  steps:
+    - name: Ensure Blue-green infrastructure
+      shell: pwsh
+      run: > 
+        Import-Module ${{ github.action_path }}/../blue-green.ps1 && 
+        Ensure-Acl 
+        -Path ${{ inputs.path }}
+        -Access ([System.Security.AccessControl.FileSystemRights]::${{ inputs.permission }})
+        -UserId ${{ inputs.username }}
+        ${{ ((inputs.inherit == 'true') && '-Inherit') || '' }}
