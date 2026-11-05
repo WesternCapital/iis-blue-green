@@ -1,0 +1,49 @@
+name: 'IIS Blue-Green Ensure Environment'
+description: 'Ensure the IIS infrastructure necessary to deploy the site with blue-green deployment. Requires an action runner on the target web server. Requires IIS Modules Url Rewrite and Application Request Routing'
+inputs:
+  farm-name:
+    description: 'Name of the WebFarm that balances traffic between slots'
+    required: true
+  host-name: 
+    description: 'The dns host the site intended to service. I.e. subdomain.domain.com (no http or other protocal, and no path)'
+  blue-IISWebsiteName: 
+    description: 'Name of the WebFarm that balances traffic between slots'
+    required: true
+  blue-WebRootDirectory: 
+    description: 'The root directory IIS will server the deploy slot from'
+    required: true
+  blue-FarmServerName: 
+    description: 'local-only address that IIS will use to redirect traffic to the deploy slot (i.e. appname-blue)'
+    required: true
+  blue-Port: 
+    description: 'Port the slot will run on locally, allowing traffic redirect (i.e. 8080)'
+    required: true
+  green-IISWebsiteName: 
+    description: 'Name of the WebFarm that balances traffic between slots'
+    required: true
+  green-WebRootDirectory: 
+    description: 'The root directory IIS will server the deploy slot from'
+    required: true
+  green-FarmServerName: 
+    description: 'local-only address that IIS will use to redirect traffic to the deploy slot (i.e. appname-blue)'
+    required: true
+  green-Port: 
+    description: 'Port the slot will run on locally, allowing traffic redirect (i.e. 8080)'
+    required: true
+  support-ssl:
+    description: 'Right now just ensures the redirect rules handle SSL. The site binding is currently a separate step because certificate management is fairly complex and easier to manage with win-acme'
+    required: false
+    default: false
+runs:
+  using: "composite"
+  steps:
+    - name: Ensure Blue-green infrastructure
+      shell: pwsh
+      run: > 
+        Import-Module ${{ github.action_path }}/../blue-green.ps1 && 
+        Ensure-BlueGreen-Environment 
+        -FarmName ${{ inputs.farm-name }}
+        -HostName ${{ inputs.host-name }}
+        -BlueSlot (New-DeploySlot -IISWebsiteName ${{ inputs.blue-IISWebsiteName }} -WebRootDirectory ${{ inputs.blue-WebRootDirectory }} -Port ${{ inputs.blue-Port }} -FarmServerName ${{ inputs.blue-FarmServerName }}) 
+        -GreenSlot (New-DeploySlot -IISWebsiteName ${{ inputs.green-IISWebsiteName }} -WebRootDirectory ${{ inputs.green-WebRootDirectory }} -Port ${{ inputs.green-Port }} -FarmServerName ${{ inputs.green-FarmServerName }})
+        -SupportSSL $${{ inputs.support-ssl }}

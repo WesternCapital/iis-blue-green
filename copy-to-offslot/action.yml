@@ -1,4 +1,4 @@
-name: 'IIS Blue-Green Deploy'
+name: 'IIS Blue-Green Copy to Offslot'
 description: 'Copy artifact to the whichever slot is current inactive. Does not switch the active slot. Requires an action runner on the target web server'
 inputs:
   artifact-path: 
