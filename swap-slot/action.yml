@@ -1,0 +1,42 @@
+name: 'IIS Blue-Green Swap Active Slot'
+description: 'Swap which blue-green slot is active in IIS webfarm. Requires an action runner on the target web server'
+inputs:
+  farm-name:
+    description: 'Name of the WebFarm that balances traffic between slots'
+    required: true
+  blue-IISWebsiteName: 
+    description: 'Name of the WebFarm that balances traffic between slots'
+    required: true
+  blue-WebRootDirectory: 
+    description: 'The root directory IIS will server the deploy slot from'
+    required: true
+  blue-FarmServerName: 
+    description: 'local-only address that IIS will use to redirect traffic to the deploy slot (i.e. appname-blue)'
+    required: true
+  blue-Port: 
+    description: 'Port the slot will run on locally, allowing traffic redirect (i.e. 8080)'
+    required: true
+  green-IISWebsiteName: 
+    description: 'Name of the WebFarm that balances traffic between slots'
+    required: true
+  green-WebRootDirectory: 
+    description: 'The root directory IIS will server the deploy slot from'
+    required: true
+  green-FarmServerName: 
+    description: 'local-only address that IIS will use to redirect traffic to the deploy slot (i.e. appname-blue)'
+    required: true
+  green-Port: 
+    description: 'Port the slot will run on locally, allowing traffic redirect (i.e. 8080)'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Swap active slot
+      shell: pwsh
+      run: > 
+        Import-Module ${{ github.action_path }}/../blue-green.ps1 &&
+        Deploy-SwapActiveSlot
+        -FarmName ${{ inputs.farm-name }}
+        -BlueSlot (New-DeploySlot -IISWebsiteName ${{ inputs.blue-IISWebsiteName }} -WebRootDirectory ${{ inputs.blue-WebRootDirectory }} -Port ${{ inputs.blue-Port }} -FarmServerName ${{ inputs.blue-FarmServerName }}) 
+        -GreenSlot (New-DeploySlot -IISWebsiteName ${{ inputs.green-IISWebsiteName }} -WebRootDirectory ${{ inputs.green-WebRootDirectory }} -Port ${{ inputs.green-Port }} -FarmServerName ${{ inputs.green-FarmServerName }})
