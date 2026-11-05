@@ -1,0 +1,24 @@
+name: 'IIS Blue-Green Get Off Slot Name'
+description: 'Swap which blue-green slot is active in IIS webfarm. Writes the name to step output: outputs.off-slot-name. Requires an action runner on the target web server'
+inputs:
+  farm-name:
+    description: 'Name of the WebFarm that balances traffic between slots'
+    required: true
+  blue-FarmServerName: 
+    description: 'local-only address that IIS will use to redirect traffic to the deploy slot (i.e. appname-blue)'
+    required: true
+  green-FarmServerName: 
+    description: 'local-only address that IIS will use to redirect traffic to the deploy slot (i.e. appname-blue)'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+
+    - name: Swap active slot
+      shell: pwsh
+      run: | 
+        Import-Module ${{ github.action_path }}/../blue-green.ps1
+        $offslotName = Get-InactiveSlotName -FarmName ${{ inputs.farm-name }} -BlueFarmServerName ${{ inputs.blue-FarmServerName }}) -GreenFarmServerName ${{ inputs.green-FarmServerName }})
+        Write-Output "off-slot-name=$($offslotName)" >> $env:GITHUB_OUTPUT
+         
