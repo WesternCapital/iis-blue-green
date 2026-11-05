@@ -484,6 +484,23 @@ function Get-SlotActivation {
     return $slotActivation
 }
 
+function Get-InactiveSlotName{
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$FarmName,
+        [Parameter(Mandatory=$true)]
+        [string]$BlueFarmServerName,
+        [Parameter(Mandatory=$true)]
+        [string]$GreenFarmServerName
+    )
+    if(Get-WebFarmServerEnabledState -FarmName $FarmName -ServerAddress $BlueFarmServerName){
+        return "green"
+    }
+    else{
+        return "blue"
+    }
+}
+
 function Deploy-Prepare-Offslot {
     param (
         [Parameter(Mandatory=$true)]
