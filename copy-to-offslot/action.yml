@@ -1,0 +1,47 @@
+name: 'IIS Blue-Green Deploy'
+description: 'Copy artifact to the whichever slot is current inactive. Does not switch the active slot. Requires an action runner on the target web server'
+inputs:
+  artifact-path: 
+    description: 'Path to the unzipped website artifact that will be copied to the webroot'
+    required: true
+  farm-name:
+    description: 'Name of the WebFarm that balances traffic between slots'
+    required: true
+  
+  blue-IISWebsiteName: 
+    description: 'Name of the WebFarm that balances traffic between slots'
+    required: true
+  blue-WebRootDirectory: 
+    description: 'The root directory IIS will server the deploy slot from'
+    required: true
+  blue-FarmServerName: 
+    description: 'local-only address that IIS will use to redirect traffic to the deploy slot (i.e. appname-blue)'
+    required: true
+  blue-Port: 
+    description: 'Port the slot will run on locally, allowing traffic redirect (i.e. 8080)'
+    required: true
+
+  green-IISWebsiteName: 
+    description: 'Name of the WebFarm that balances traffic between slots'
+    required: true
+  green-WebRootDirectory: 
+    description: 'The root directory IIS will server the deploy slot from'
+    required: true
+  green-FarmServerName: 
+    description: 'local-only address that IIS will use to redirect traffic to the deploy slot (i.e. appname-blue)'
+    required: true
+  green-Port: 
+    description: 'Port the slot will run on locally, allowing traffic redirect (i.e. 8080)'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Copy artifact to the inactive website slot
+      shell: pwsh
+      run: > 
+        Import-Module ${{ github.action_path }}/../blue-green.ps1 &&
+        Deploy-Prepare-Offslot
+        -FarmName ${{ inputs.farm-name }}
+        -ArtifactPath ${{ inputs.artifact-path }}
+        -BlueSlot (New-DeploySlot -IISWebsiteName ${{ inputs.blue-IISWebsiteName }} -WebRootDirectory ${{ inputs.blue-WebRootDirectory }} -Port ${{ inputs.blue-Port }} -FarmServerName ${{ inputs.blue-FarmServerName }}) 
+        -GreenSlot (New-DeploySlot -IISWebsiteName ${{ inputs.green-IISWebsiteName }} -WebRootDirectory ${{ inputs.green-WebRootDirectory }} -Port ${{ inputs.green-Port }} -FarmServerName ${{ inputs.green-FarmServerName }})

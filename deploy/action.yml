@@ -1,5 +1,5 @@
 name: 'IIS Blue-Green Deploy'
-description: 'Deploy website to IIS using blue-green deployment strategy. Requires an action runner on the target web server'
+description: 'Deploy website to IIS using blue-green deployment strategy. Ensures the right IIS infrastructure exists, copies site files, warms the site, and swaps the slot. Requires an action runner on the target web server'
 inputs:
   artifact-path: 
     description: 'Path to the unzipped website artifact that will be copied to the webroot'
