@@ -4,6 +4,9 @@ inputs:
   artifact-path: 
     description: 'Path to the unzipped website artifact that will be copied to the webroot'
     required: true
+  relative-folder-to-preserve: 
+    description: "Folder path relative to the target web directory that should be preserved during deploy. e.g. ./app_data"
+    required: false
   farm-name:
     description: 'Name of the WebFarm that balances traffic between slots'
     required: true
@@ -59,3 +62,4 @@ runs:
         -ArtifactPath ${{ inputs.artifact-path }}
         -BlueSlot (New-DeploySlot -IISWebsiteName ${{ inputs.blue-IISWebsiteName }} -WebRootDirectory ${{ inputs.blue-WebRootDirectory }} -Port ${{ inputs.blue-Port }} -FarmServerName ${{ inputs.blue-FarmServerName }}) 
         -GreenSlot (New-DeploySlot -IISWebsiteName ${{ inputs.green-IISWebsiteName }} -WebRootDirectory ${{ inputs.green-WebRootDirectory }} -Port ${{ inputs.green-Port }} -FarmServerName ${{ inputs.green-FarmServerName }})
+        -RelativeFolderToPreserve ${{ inputs.relative-folder-to-preserve }}

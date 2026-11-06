@@ -510,7 +510,9 @@ function Deploy-Prepare-Offslot {
         [Parameter(Mandatory=$true)]
         [DeploySlot]$BlueSlot,
         [Parameter(Mandatory=$true)]
-        [DeploySlot]$GreenSlot
+        [DeploySlot]$GreenSlot,
+        [Parameter(Mandatory=$false, HelpMessage="Path relative to the target directory that should be preserved during deploy")]
+        [string] $RelativeFolderToPreserve = $null
     )
 
     $slotActivation = Get-SlotActivation -FarmName $FarmName -BlueSlot $BlueSlot -GreenSlot $GreenSlot
@@ -526,6 +528,11 @@ function Deploy-Prepare-Offslot {
         Stop-WebAppPool $targetSlot.IISWebsiteName
     }
 
+    if($RelativeFolderToPreserve -and (Test-Path -Path (Join-Path $targetSlot.WebRootDirectory $RelativeFolderToPreserve))){
+        # Excluding a folder from deleting is weirdly hard. 
+        # It's much easier to just copy the folder we want to keep into the artifact we're about to copy
+        Move-Item -Path (Join-Path $targetSlot.WebRootDirectory $RelativeFolderToPreserve) -Destination (Join-Path $ArtifactPath $RelativeFolderToPreserve "..") -Force
+    }
     Write-Host "Clearing target directory/web root: $($targetSlot.WebRootDirectory)"
     Clean-Directory $targetSlot.WebRootDirectory
 
@@ -577,10 +584,12 @@ function Deploy-BlueGreen {
         [Parameter(Mandatory=$true)]
         [DeploySlot]$BlueSlot,
         [Parameter(Mandatory=$true)]
-        [DeploySlot]$GreenSlot
+        [DeploySlot]$GreenSlot,
+        [Parameter(Mandatory=$false, HelpMessage="Path relative to the target directory that should be preserved during deploy")]
+        [string] $RelativeFolderToPreserve = $null
     )
 
-    Deploy-Prepare-Offslot -ArtifactPath $ArtifactPath -FarmName $FarmName -BlueSlot $BlueSlot -GreenSlot $GreenSlot -ErrorAction Stop
+    Deploy-Prepare-Offslot -ArtifactPath $ArtifactPath -FarmName $FarmName -BlueSlot $BlueSlot -GreenSlot $GreenSlot -RelativeFolderToPreserve $RelativeFolderToPreserve -ErrorAction Stop
     $slotToWarm = (Get-SlotActivation -FarmName $FarmName -BlueSlot $BlueSlot -GreenSlot $GreenSlot).InactiveSlot
     Warm-Website -Slot $slotToWarm
     Deploy-SwapActiveSlot -FarmName $FarmName -BlueSlot $BlueSlot -GreenSlot $GreenSlot
