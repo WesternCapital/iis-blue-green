@@ -10,15 +10,21 @@ inputs:
   green-FarmServerName: 
     description: 'local-only address that IIS will use to redirect traffic to the deploy slot (i.e. appname-blue)'
     required: true
+outputs:
+  off-slot-name:
+    description: "Name of the inactive deploy slot. I.e 'blue' or 'green'"
+    value: ${{ steps.get-slot-name.outputs.off-slot-name }}
 
 runs:
   using: "composite"
   steps:
 
     - name: Get inactive slot name
+      id: get-slot-name
       shell: pwsh
       run: | 
         Import-Module ${{ github.action_path }}/../blue-green.ps1
         $offslotName = Get-InactiveSlotName -FarmName ${{ inputs.farm-name }} -BlueFarmServerName ${{ inputs.blue-FarmServerName }} -GreenFarmServerName ${{ inputs.green-FarmServerName }}
+        echo $offslotName
         Write-Output "off-slot-name=$($offslotName)" >> $env:GITHUB_OUTPUT
          
