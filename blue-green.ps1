@@ -591,6 +591,6 @@ function Deploy-BlueGreen {
 
     Deploy-Prepare-Offslot -ArtifactPath $ArtifactPath -FarmName $FarmName -BlueSlot $BlueSlot -GreenSlot $GreenSlot -RelativeFolderToPreserve $RelativeFolderToPreserve -ErrorAction Stop
     $slotToWarm = (Get-SlotActivation -FarmName $FarmName -BlueSlot $BlueSlot -GreenSlot $GreenSlot).InactiveSlot
-    Warm-Website -Slot $slotToWarm
+    Warm-Website -Slot $slotToWarm -ErrorAction Stop
     Deploy-SwapActiveSlot -FarmName $FarmName -BlueSlot $BlueSlot -GreenSlot $GreenSlot
 }
