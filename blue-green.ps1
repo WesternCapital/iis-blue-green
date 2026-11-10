@@ -455,6 +455,8 @@ function Clean-Directory {
     ## NOTE: Web01 is on a windows version where Remove-Item -Recurse is unreliable
     ##       SOURCE: https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/remove-item?view=powershell-7.5#example-4-delete-files-in-subfolders-recursively
     $filesToRemove | Get-ChildItem -Recurse | Sort-Object {$_.FullName.Length} -Descending | Remove-Item -Force
+    ## Get-ChildItem doesn't include the top level directory, so we need to remove them in a seperate step
+    $filesToRemove | where-object { Test-Path $_ } | Remove-Item -Force
 }
 
 class SlotActivation{
