@@ -514,7 +514,9 @@ function Deploy-Prepare-Offslot {
         [Parameter(Mandatory=$true)]
         [DeploySlot]$GreenSlot,
         [Parameter(Mandatory=$false, HelpMessage="Path relative to the target directory that should be preserved during deploy")]
-        [string] $RelativeFolderToPreserve = $null
+        [string] $RelativeFolderToPreserve = $null,
+        [Parameter(Mandatory=$false, HelpMessage="Use Move-Item instead of Copy-Item when publishing the artifact to the web root")]
+        [bool] $MoveArtifactOnDeploy = $false
     )
 
     $slotActivation = Get-SlotActivation -FarmName $FarmName -BlueSlot $BlueSlot -GreenSlot $GreenSlot
@@ -539,7 +541,12 @@ function Deploy-Prepare-Offslot {
     Clean-Directory $targetSlot.WebRootDirectory
 
     Write-Host "Copying files to web root: ArtifactDir: $($ArtifactPath); WebRoot: $($targetSlot.WebRootDirectory)"
-    Copy-Item (Join-Path "$ArtifactPath" "*") $targetSlot.WebRootDirectory -Force -Recurse
+    if($MoveArtifactOnDeploy){
+        Get-ChildItem $ArtifactPath |% { Move-Item -Path $_ -Destination $targetSlot.WebRootDirectory -Force }
+    }
+    else{
+        Copy-Item (Join-Path "$ArtifactPath" "*") $targetSlot.WebRootDirectory -Force -Recurse
+    }
     $BlueSlot.FarmServerName | Out-File (Join-Path $targetSlot.WebRootDirectory "slotId.html")
 
     Write-Host "Restarting target slot"
@@ -588,10 +595,12 @@ function Deploy-BlueGreen {
         [Parameter(Mandatory=$true)]
         [DeploySlot]$GreenSlot,
         [Parameter(Mandatory=$false, HelpMessage="Path relative to the target directory that should be preserved during deploy")]
-        [string] $RelativeFolderToPreserve = $null
+        [string] $RelativeFolderToPreserve = $null,
+        [Parameter(Mandatory=$false, HelpMessage="Use Move-Item instead of Copy-Item when publishing the artifact to the web root")]
+        [bool] $MoveArtifactOnDeploy = $false
     )
 
-    Deploy-Prepare-Offslot -ArtifactPath $ArtifactPath -FarmName $FarmName -BlueSlot $BlueSlot -GreenSlot $GreenSlot -RelativeFolderToPreserve $RelativeFolderToPreserve -ErrorAction Stop
+    Deploy-Prepare-Offslot -ArtifactPath $ArtifactPath -FarmName $FarmName -BlueSlot $BlueSlot -GreenSlot $GreenSlot -RelativeFolderToPreserve $RelativeFolderToPreserve -MoveArtifactOnDeploy $MoveArtifactOnDeploy -ErrorAction Stop
     $slotToWarm = (Get-SlotActivation -FarmName $FarmName -BlueSlot $BlueSlot -GreenSlot $GreenSlot).InactiveSlot
     Warm-Website -Slot $slotToWarm -ErrorAction Stop
     Deploy-SwapActiveSlot -FarmName $FarmName -BlueSlot $BlueSlot -GreenSlot $GreenSlot
